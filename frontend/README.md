@@ -1,32 +1,53 @@
-# React + TypeScript + Vite
+# BariBhara — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React UI for BariBhara, the AI rent and building manager for Dhaka landlords.
 
-Currently, two official plugins are available:
+**Stack:** React 19 · TypeScript · Vite · Tailwind CSS v4 · TanStack Query · React Router
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Screens
 
-## React Compiler
+| Role | Pages |
+|---|---|
+| Owner (`admin`) | Dashboard · Buildings · Flats · Tenants & leases · Rent ledger · Maintenance board · AI assistant |
+| Caretaker (`staff`) | Dashboard · Flats (read-only) · Maintenance board · AI assistant |
+| Tenant | My home (dues + payment history) · My requests · AI assistant |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The AI assistant keeps the conversation (multi-turn) and shows which **tools** the agent used and which **document sources** (RAG) it answered from.
 
-## Expanding the Oxlint configuration
+## Run locally
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+cd frontend
+cp .env.example .env          # set VITE_API_URL to your backend
+npm install
+npm run dev                   # http://localhost:5173
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+### Mock mode (no backend needed)
+
+Set `VITE_API_MOCK=true` in `.env`. Every request is then served by an in-memory mock (`src/lib/mock/`) with realistic demo data. It applies the same role and error rules as the real API.
+
+| Demo login | Email | Password |
+|---|---|---|
+| Owner | rahman@baribhara.app | admin123 |
+| Caretaker | karim@baribhara.app | staff123 |
+| Tenant | tanvir.hasan@gmail.com | tenant123 |
+
+The mock code is loaded only when mock mode is on, so it is not bundled in a normal build.
+
+## API
+
+Every endpoint, payload and status code the UI uses is documented in [API_CONTRACT.md](./API_CONTRACT.md).
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | dev server |
+| `npm run build` | type-check + production build to `dist/` |
+| `npm run lint` | oxlint |
+| `npm run preview` | serve the production build |
+
+## Deploy
+
+This is a static SPA. It works on Vercel (`vercel.json`), Netlify (`public/_redirects`) or a Render Static Site with root directory `frontend`, build command `npm ci && npm run build` and publish directory `dist`. Set `VITE_API_URL` to the live backend URL.
