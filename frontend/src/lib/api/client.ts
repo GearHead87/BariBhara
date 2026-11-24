@@ -1,5 +1,3 @@
-import { mockRequest } from '@/lib/mock/server'
-
 export const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
 export const API_BASE = `${API_URL}/api/v1`
 export const USE_MOCK = import.meta.env.VITE_API_MOCK === 'true'
@@ -79,6 +77,8 @@ export async function request<T>(method: string, path: string, opts: RequestOpti
 
   try {
     if (USE_MOCK) {
+      // Loaded on demand so the mock data never ships in a real build
+      const { mockRequest } = await import('@/lib/mock/server')
       return await mockRequest<T>(method, path, { query, body: opts.body, token })
     }
 

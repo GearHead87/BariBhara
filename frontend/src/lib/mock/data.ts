@@ -118,7 +118,7 @@ for (const offset of [-2, -1, 0]) {
     if (lease.start_date.slice(0, 7) > month) continue
     // current month: a realistic mix of paid, partial and still-due
     let paid = lease.monthly_rent
-    if (offset === 0 && [2, 5, 8].includes(lease.id)) paid = 0
+    if (offset === 0 && [1, 5, 8].includes(lease.id)) paid = 0
     if (offset === 0 && lease.id === 4) paid = 15000
     if (offset === -1 && lease.id === 5) paid = 10000
     const method = paid > 0 ? methods[(lease.id + offset + 3) % methods.length] : null
