@@ -189,12 +189,12 @@ export default function RentPage() {
 }
 
 function PaymentForm({ payment, onClose }: { payment: Payment; onClose: () => void }) {
-  const [form, setForm] = useState<Pick<PaymentInput, 'amount_paid' | 'method' | 'trx_id' | 'paid_at'>>({
+  const [form, setForm] = useState<Pick<PaymentInput, 'amount_paid' | 'method' | 'trx_id' | 'paid_at'>>(() => ({
     amount_paid: payment.amount_paid || payment.amount_due,
     method: payment.method ?? 'bkash',
     trx_id: payment.trx_id ?? '',
     paid_at: (payment.paid_at ?? new Date().toISOString()).slice(0, 10),
-  })
+  }))
   const save = useApiMutation((data: Partial<PaymentInput>) => api.payments.update(payment.id, data), {
     invalidate: ['payments'],
     success: 'Payment recorded',
