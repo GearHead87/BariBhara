@@ -10,6 +10,7 @@ from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppError
+from app.integrations.embeddings.client import EmbeddingClient
 from app.integrations.llm.client import LLMClient
 from app.integrations.llm.types import Message, ToolCallRequest
 from app.modules.chat.prompts import AskerContext, build_system_prompt
@@ -43,10 +44,10 @@ class _Run:
 
 
 class ChatService:
-    def __init__(self, llm: LLMClient, session: AsyncSession) -> None:
+    def __init__(self, llm: LLMClient, session: AsyncSession, embeddings: EmbeddingClient) -> None:
         self.llm = llm
         self.session = session
-        self.services = Services(session)
+        self.services = Services(session, embeddings)
 
     async def chat(self, user: User, request: ChatRequest) -> ChatResponse:
         tools = tools_for_role(user.role_name)

@@ -14,6 +14,7 @@ from app.modules.buildings.controllers import router as buildings_router
 from app.modules.chat.controllers import router as chat_router
 from app.modules.flats.controllers import router as flats_router
 from app.modules.health.controllers import router as health_router
+from app.modules.knowledge.controllers import router as knowledge_router
 from app.modules.leases.controllers import router as leases_router
 from app.modules.maintenance.controllers import router as maintenance_router
 from app.modules.payments.controllers import router as payments_router
@@ -62,6 +63,7 @@ def create_app() -> FastAPI:
         payments_router,
         maintenance_router,
         chat_router,
+        knowledge_router,
     )
     for router in routers:
         app.include_router(router, prefix=settings.API_V1_PREFIX)

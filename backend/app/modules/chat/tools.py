@@ -159,6 +159,27 @@ async def get_collection_summary(ctx: ToolContext, args: CollectionArgs) -> dict
     return summary.model_dump(mode="json")
 
 
+# ---- search_knowledge ------------------------------------------------------------------
+
+
+class KnowledgeArgs(ToolArgs):
+    query: Annotated[str, StringConstraints(min_length=2, max_length=500)] = Field(
+        description="The question, rephrased as a short search query (any language)"
+    )
+
+
+async def search_knowledge(ctx: ToolContext, args: KnowledgeArgs) -> dict[str, Any]:
+    hits = await ctx.services.knowledge.search(args.query)
+    if not hits:
+        return {"results": [], "note": "nothing relevant found"}
+    return {
+        "results": [
+            {"title": hit.title, "content": hit.content, "score": round(hit.score, 3)}
+            for hit in hits
+        ]
+    }
+
+
 # ---- registry -------------------------------------------------------------------------
 
 TOOLS: dict[str, Tool] = {
@@ -206,6 +227,19 @@ TOOLS: dict[str, Tool] = {
             args_model=CollectionArgs,
             roles=frozenset({RoleName.ADMIN}),
             handler=get_collection_summary,
+        ),
+        Tool(
+            name="search_knowledge",
+            description=(
+                "Search the building's documents: house rules, tenancy agreement terms "
+                "(rent due date, late fee, advance, notice), utilities (DESCO/DPDC prepaid "
+                "meter, Titas gas, WASA water, generator, internet), the Premises Rent Control "
+                "Act 1991, move-in/move-out checklists and emergency contacts. Returns the "
+                "most relevant passages, or no results if the documents do not cover it."
+            ),
+            args_model=KnowledgeArgs,
+            roles=ALL_ROLES,
+            handler=search_knowledge,
         ),
     ]
 }
