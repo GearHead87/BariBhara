@@ -37,7 +37,7 @@ async def list_requests(
     filters = MaintenanceFilters(
         status=status, category=category, priority=priority, flat_id=flat_id
     )
-    return await service.list(user, filters, page)
+    return await service.search(user, filters, page)
 
 
 @router.get("/{request_id}", response_model=MaintenanceOut, summary="Get one repair request")

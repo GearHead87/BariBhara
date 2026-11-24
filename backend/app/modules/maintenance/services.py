@@ -24,7 +24,7 @@ class MaintenanceService:
         self.leases = leases
         self.users = users
 
-    async def list(
+    async def search(
         self, user: User, filters: MaintenanceFilters, page: Page
     ) -> list[MaintenanceRequest]:
         if user.role_name == RoleName.TENANT:

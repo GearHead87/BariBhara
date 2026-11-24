@@ -44,7 +44,7 @@ async def list_flats(
     page: PageDep,
     filters: Annotated[FlatFilters, Depends(get_flat_filters)],
 ) -> list[Flat]:
-    return await service.list(filters, page)
+    return await service.search(filters, page)
 
 
 @router.get("/{flat_id}", response_model=FlatOut, summary="Get one flat")

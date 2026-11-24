@@ -10,7 +10,7 @@ class BuildingService:
     def __init__(self, buildings: BuildingRepository) -> None:
         self.buildings = buildings
 
-    async def list(
+    async def search(
         self, page: Page, q: str | None = None, area: str | None = None
     ) -> list[Building]:
         return await self.buildings.search(page, q=q, area=area)

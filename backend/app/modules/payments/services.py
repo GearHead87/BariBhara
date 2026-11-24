@@ -1,4 +1,5 @@
-from datetime import UTC, datetime
+from collections import defaultdict
+from datetime import UTC, date, datetime
 from typing import Any
 
 from app.core.exceptions import ConflictError, NotFoundError
@@ -6,7 +7,15 @@ from app.core.pagination import Page
 from app.modules.leases.repositories import LeaseRepository
 from app.modules.payments.models import PaymentStatus, RentPayment
 from app.modules.payments.repositories import PaymentFilters, PaymentRepository
-from app.modules.payments.schemas import PaymentCreate, PaymentUpdate
+from app.modules.payments.schemas import (
+    BuildingCollectionOut,
+    CollectionSummaryOut,
+    PaymentCreate,
+    PaymentUpdate,
+    PendingTenantOut,
+    RentMonthOut,
+    RentStatusOut,
+)
 from app.modules.users.models import RoleName, User
 
 
@@ -23,7 +32,7 @@ class PaymentService:
         self.payments = payments
         self.leases = leases
 
-    async def list(self, user: User, filters: PaymentFilters, page: Page) -> list[RentPayment]:
+    async def search(self, user: User, filters: PaymentFilters, page: Page) -> list[RentPayment]:
         if user.role_name == RoleName.TENANT:
             filters = PaymentFilters(
                 month=filters.month,
@@ -83,6 +92,104 @@ class PaymentService:
         payment = await self._get_admin(payment_id)
         await self.payments.delete(payment)
         await self.payments.commit()
+
+    # ---- reports -------------------------------------------------------------------------
+
+    async def rent_status_for_tenant(self, tenant: User) -> RentStatusOut:
+        """The tenant's current lease and every rent record on it, newest month first."""
+        lease = await self.leases.active_for_tenant(tenant.id)
+        if lease is None:
+            return RentStatusOut(has_active_lease=False)
+        records = await self.payments.search(PaymentFilters(lease_id=lease.id))
+        months = [
+            RentMonthOut(
+                month=p.month,
+                amount_due=p.amount_due,
+                amount_paid=p.amount_paid,
+                outstanding=max(p.amount_due - p.amount_paid, 0),
+                status=p.status,
+                method=p.method,
+                paid_at=p.paid_at,
+            )
+            for p in records
+        ]
+        return RentStatusOut(
+            has_active_lease=True,
+            building=lease.flat.building.name,
+            flat_no=lease.flat.flat_no,
+            monthly_rent=lease.monthly_rent,
+            lease_start=lease.start_date.isoformat(),
+            months=months,
+            total_outstanding=sum(m.outstanding for m in months),
+        )
+
+    async def collection_summary(self, month: str | None = None) -> CollectionSummaryOut:
+        """Expected vs collected rent for one month across all buildings.
+
+        An active lease with no rent record for the month counts as fully due.
+        """
+        month = month or date.today().strftime("%Y-%m")
+        records = await self.payments.search(PaymentFilters(month=month))
+        recorded_leases = {p.lease_id for p in records}
+
+        rows: list[PendingTenantOut] = []
+        for p in records:
+            lease = p.lease
+            rows.append(
+                PendingTenantOut(
+                    tenant_name=lease.tenant.full_name,
+                    tenant_phone=lease.tenant.phone,
+                    building=lease.flat.building.name,
+                    flat_no=lease.flat.flat_no,
+                    amount_due=p.amount_due,
+                    amount_paid=p.amount_paid,
+                    outstanding=max(p.amount_due - p.amount_paid, 0),
+                    status=p.status.value,
+                )
+            )
+        for lease in await self.leases.list_active():
+            if lease.id in recorded_leases or lease.start_date.strftime("%Y-%m") > month:
+                continue
+            rows.append(
+                PendingTenantOut(
+                    tenant_name=lease.tenant.full_name,
+                    tenant_phone=lease.tenant.phone,
+                    building=lease.flat.building.name,
+                    flat_no=lease.flat.flat_no,
+                    amount_due=lease.monthly_rent,
+                    amount_paid=0,
+                    outstanding=lease.monthly_rent,
+                    status="no_record",
+                )
+            )
+
+        per_building: dict[str, list[int]] = defaultdict(lambda: [0, 0])
+        for row in rows:
+            per_building[row.building][0] += row.amount_due
+            per_building[row.building][1] += row.amount_paid
+        expected = sum(row.amount_due for row in rows)
+        collected = sum(row.amount_paid for row in rows)
+        outstanding = sum(row.outstanding for row in rows)
+        return CollectionSummaryOut(
+            month=month,
+            expected=expected,
+            collected=collected,
+            outstanding=outstanding,
+            collection_rate_percent=round(100 * collected / expected, 1) if expected else 0.0,
+            by_building=[
+                BuildingCollectionOut(
+                    building=name,
+                    expected=due,
+                    collected=paid,
+                    outstanding=max(due - paid, 0),
+                )
+                for name, (due, paid) in sorted(per_building.items())
+            ],
+            pending_tenants=sorted(
+                (row for row in rows if row.outstanding > 0),
+                key=lambda row: (row.building, row.flat_no),
+            ),
+        )
 
     @staticmethod
     def _apply_rules(values: dict[str, Any]) -> None:

@@ -22,7 +22,7 @@ class FlatService:
         self.leases = leases
         self.maintenance = maintenance
 
-    async def list(self, filters: FlatFilters, page: Page) -> list[Flat]:
+    async def search(self, filters: FlatFilters, page: Page) -> list[Flat]:
         return await self.flats.search(filters, page)
 
     async def get(self, flat_id: int) -> Flat:

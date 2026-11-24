@@ -22,7 +22,7 @@ async def list_buildings(
     q: Annotated[str | None, Query(max_length=100, description="Name or address")] = None,
     area: Annotated[str | None, Query(max_length=60)] = None,
 ) -> list[Building]:
-    return await service.list(page, q=q, area=area)
+    return await service.search(page, q=q, area=area)
 
 
 @router.get("/{building_id}", response_model=BuildingOut, summary="Get one building")

@@ -29,7 +29,7 @@ async def list_leases(
     ] = None,
     is_active: Annotated[bool | None, Query()] = None,
 ) -> list[Lease]:
-    return await service.list(user, LeaseFilters(q=q, is_active=is_active), page)
+    return await service.search(user, LeaseFilters(q=q, is_active=is_active), page)
 
 
 @router.get("/{lease_id}", response_model=LeaseOut, summary="Get one lease (tenant: own only)")

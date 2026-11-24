@@ -49,3 +49,54 @@ class PaymentOut(BaseModel):
     trx_id: str | None
     paid_at: datetime | None
     status: PaymentStatus
+
+
+# ---- reports (used by the chat tools and the MCP server) ---------------------------------
+
+
+class RentMonthOut(BaseModel):
+    month: str
+    amount_due: int
+    amount_paid: int
+    outstanding: int
+    status: PaymentStatus
+    method: PaymentMethod | None
+    paid_at: datetime | None
+
+
+class RentStatusOut(BaseModel):
+    has_active_lease: bool
+    building: str | None = None
+    flat_no: str | None = None
+    monthly_rent: int | None = None
+    lease_start: str | None = None
+    months: list[RentMonthOut] = []
+    total_outstanding: int = 0
+
+
+class PendingTenantOut(BaseModel):
+    tenant_name: str
+    tenant_phone: str | None
+    building: str
+    flat_no: str
+    amount_due: int
+    amount_paid: int
+    outstanding: int
+    status: str  # paid | partial | due | no_record
+
+
+class BuildingCollectionOut(BaseModel):
+    building: str
+    expected: int
+    collected: int
+    outstanding: int
+
+
+class CollectionSummaryOut(BaseModel):
+    month: str
+    expected: int
+    collected: int
+    outstanding: int
+    collection_rate_percent: float
+    by_building: list[BuildingCollectionOut]
+    pending_tenants: list[PendingTenantOut]

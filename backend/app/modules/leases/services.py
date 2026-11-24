@@ -21,7 +21,7 @@ class LeaseService:
 
     # ---- reads ------------------------------------------------------------------------
 
-    async def list(self, user: User, filters: LeaseFilters, page: Page) -> list[Lease]:
+    async def search(self, user: User, filters: LeaseFilters, page: Page) -> list[Lease]:
         if user.role_name == RoleName.TENANT:
             filters = LeaseFilters(q=filters.q, is_active=filters.is_active, tenant_id=user.id)
         return await self.leases.search(filters, page)

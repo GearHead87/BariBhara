@@ -29,7 +29,7 @@ async def list_payments(
     lease_id: Annotated[int | None, Query(ge=1)] = None,
 ) -> list[RentPayment]:
     filters = PaymentFilters(month=month, status=status, lease_id=lease_id)
-    return await service.list(user, filters, page)
+    return await service.search(user, filters, page)
 
 
 @router.get("/{payment_id}", response_model=PaymentOut, summary="Get one rent record")
