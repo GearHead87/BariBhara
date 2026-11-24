@@ -5,10 +5,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app import models as _models  # noqa: F401  (registers every ORM model up front)
 from app.core.config import get_settings
 from app.core.database import engine
 from app.core.handlers import register_exception_handlers
 from app.modules.auth.controllers import router as auth_router
+from app.modules.buildings.controllers import router as buildings_router
+from app.modules.flats.controllers import router as flats_router
 from app.modules.health.controllers import router as health_router
 from app.modules.users.controllers import router as users_router
 
@@ -45,7 +48,8 @@ def create_app() -> FastAPI:
 
     register_exception_handlers(app)
 
-    for router in (health_router, auth_router, users_router):
+    routers = (health_router, auth_router, users_router, buildings_router, flats_router)
+    for router in routers:
         app.include_router(router, prefix=settings.API_V1_PREFIX)
 
     return app

@@ -66,7 +66,7 @@ async def client(roles: None) -> AsyncIterator[AsyncClient]:
 
 
 @dataclass
-class TestUser:
+class AuthedUser:
     id: int
     email: str
     password: str
@@ -78,7 +78,7 @@ class TestUser:
         return {"Authorization": f"Bearer {self.token}"}
 
 
-MakeUser = Callable[..., Awaitable[TestUser]]
+MakeUser = Callable[..., Awaitable[AuthedUser]]
 
 
 @pytest.fixture(scope="session")
@@ -89,7 +89,7 @@ async def make_user(roles: None) -> MakeUser:
     from app.core.security import create_access_token, hash_password
     from app.modules.users.models import Role, User
 
-    async def _make(role: str = "tenant", full_name: str = "Test User") -> TestUser:
+    async def _make(role: str = "tenant", full_name: str = "Test User") -> AuthedUser:
         email = f"{role}-{uuid.uuid4().hex[:8]}@example.com"
         password = "password123"
         async with SessionLocal() as session:
@@ -104,6 +104,6 @@ async def make_user(roles: None) -> MakeUser:
             session.add(user)
             await session.commit()
             token = create_access_token(user.id).token
-            return TestUser(user.id, email, password, role, token)
+            return AuthedUser(user.id, email, password, role, token)
 
     return _make

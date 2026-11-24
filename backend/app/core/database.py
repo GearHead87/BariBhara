@@ -2,8 +2,9 @@
 
 from collections.abc import AsyncIterator
 from datetime import datetime
+from enum import StrEnum
 
-from sqlalchemy import DateTime, MetaData, func
+from sqlalchemy import DateTime, Enum, MetaData, func
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -33,8 +34,28 @@ class IdCreatedMixin:
 
 
 class UpdatedMixin:
+    # eager_defaults: read server-generated values (updated_at) back with RETURNING after
+    # an UPDATE, instead of leaving them expired (an expired attribute would need lazy IO).
+    __mapper_args__ = {"eager_defaults": True}
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+
+def str_enum(enum_cls: type[StrEnum], name: str) -> Enum:
+    """Store a StrEnum as varchar + CHECK constraint (easier to migrate than a native PG enum).
+
+    `values_callable` stores the lower-case values ('vacant'), not the member names ('VACANT').
+    """
+    return Enum(
+        enum_cls,
+        name=name,
+        native_enum=False,
+        create_constraint=True,
+        length=20,
+        validate_strings=True,
+        values_callable=lambda e: [member.value for member in e],
     )
 
 
