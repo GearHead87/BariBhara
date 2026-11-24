@@ -98,6 +98,9 @@ class MaintenanceService:
         await self.requests.delete(request)
         await self.requests.commit()
 
+    async def open_count_for_building(self, building_id: int) -> int:
+        return await self.requests.count_open_by_building(building_id)
+
     async def _get_any(self, request_id: int) -> MaintenanceRequest:
         request = await self.requests.get(request_id)
         if request is None:

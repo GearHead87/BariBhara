@@ -9,6 +9,8 @@ from app import models as _models  # noqa: F401  (registers every ORM model up f
 from app.core.config import get_settings
 from app.core.database import engine
 from app.core.handlers import register_exception_handlers
+from app.mcp.http import mount_mcp
+from app.mcp.server import mcp
 from app.modules.auth.controllers import router as auth_router
 from app.modules.buildings.controllers import router as buildings_router
 from app.modules.chat.controllers import router as chat_router
@@ -31,7 +33,9 @@ logging.basicConfig(
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-    yield
+    # The MCP session manager must be running before /mcp can serve any request.
+    async with mcp.session_manager.run():
+        yield
     await engine.dispose()
 
 
@@ -67,6 +71,8 @@ def create_app() -> FastAPI:
     )
     for router in routers:
         app.include_router(router, prefix=settings.API_V1_PREFIX)
+
+    mount_mcp(app, settings)
 
     return app
 
