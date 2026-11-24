@@ -74,6 +74,8 @@ class EmbeddingClient:
                     model=self.model, input=inputs, dimensions=self.dim
                 )
             except openai.BadRequestError as exc:
+                if "dimension" not in str(exc).lower():
+                    raise  # e.g. an invalid API key (Gemini answers those with 400 too)
                 logger.info("Endpoint rejected `dimensions` (%s); truncating locally", exc)
                 self._send_dimensions = False
         return await self._client.embeddings.create(model=self.model, input=inputs)

@@ -12,7 +12,10 @@ from app.integrations.embeddings.client import EmbeddingClient, EmbeddingUnavail
 
 
 class FakeEmbeddingsAPI:
-    def __init__(self, size: int, reject_dimensions: bool = False, fail: bool = False) -> None:
+    def __init__(
+        self, size: int, reject_dimensions: bool = False, fail: bool = False, bad_key: bool = False
+    ) -> None:
+        self.bad_key = bad_key
         self.size = size
         self.reject_dimensions = reject_dimensions
         self.fail = fail
@@ -23,6 +26,12 @@ class FakeEmbeddingsAPI:
         request = httpx2.Request("POST", "http://test/embeddings")
         if self.fail:
             raise openai.APIConnectionError(request=request)
+        if self.bad_key:
+            raise openai.BadRequestError(
+                "Please pass a valid API key",
+                response=httpx2.Response(400, request=request),
+                body=None,
+            )
         if self.reject_dimensions and "dimensions" in kwargs:
             raise openai.BadRequestError(
                 "Unknown parameter: dimensions",
@@ -84,3 +93,11 @@ async def test_provider_errors_become_503() -> None:
     client = client_with(FakeEmbeddingsAPI(size=8, fail=True))
     with pytest.raises(EmbeddingUnavailableError):
         await client.embed_query("x")
+
+
+async def test_bad_key_does_not_disable_dimensions() -> None:
+    api = FakeEmbeddingsAPI(size=8, bad_key=True)
+    client = client_with(api)
+    with pytest.raises(EmbeddingUnavailableError):
+        await client.embed_query("x")
+    assert len(api.requests) == 1 and client._send_dimensions

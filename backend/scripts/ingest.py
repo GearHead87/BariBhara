@@ -8,10 +8,13 @@ Run from backend/:  uv run python -m scripts.ingest [--force]
 
 import argparse
 import asyncio
+import logging
+import sys
 from pathlib import Path
 
 from app import models  # noqa: F401  (register all models)
 from app.core.database import SessionLocal, engine
+from app.integrations.embeddings.client import EmbeddingUnavailableError
 from app.integrations.embeddings.dependencies import get_embedding_client
 from app.modules.knowledge.dependencies import build_knowledge_service
 from app.modules.knowledge.services import IngestOutcome
@@ -58,7 +61,15 @@ def main() -> None:
     parser.add_argument("--force", action="store_true", help="re-embed unchanged files too")
     parser.add_argument("--dir", type=Path, default=KNOWLEDGE_DIR, help="folder with .md files")
     args = parser.parse_args()
-    asyncio.run(ingest(args.dir, args.force))
+    logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(message)s")
+    try:
+        asyncio.run(ingest(args.dir, args.force))
+    except EmbeddingUnavailableError:
+        sys.exit(
+            "\nIngest stopped: the embedding API call failed (see the warning above).\n"
+            "Check EMBEDDING_BASE_URL / EMBEDDING_MODEL and the API key "
+            "(EMBEDDING_API_KEY, or LLM_API_KEY when it is empty) in .env."
+        )
 
 
 if __name__ == "__main__":
