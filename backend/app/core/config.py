@@ -4,6 +4,7 @@ Required settings have no default. If one is missing, building `Settings()`
 raises a validation error, so the app refuses to start.
 """
 
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Literal
@@ -64,8 +65,10 @@ class Settings(BaseSettings):
         # Render (and most hosts) hand out postgres:// or postgresql:// URLs.
         for prefix in ("postgres://", "postgresql://"):
             if value.startswith(prefix):
-                return "postgresql+asyncpg://" + value.removeprefix(prefix)
-        return value
+                value = "postgresql+asyncpg://" + value.removeprefix(prefix)
+                break
+        # asyncpg calls libpq's `sslmode` parameter `ssl` (external Render URLs need SSL).
+        return re.sub(r"([?&])sslmode=", r"\1ssl=", value)
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

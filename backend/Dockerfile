@@ -35,5 +35,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=5 \
     CMD python -c "import os,urllib.request; urllib.request.urlopen(f'http://127.0.0.1:{os.environ.get(\"PORT\",\"8000\")}/api/v1/health', timeout=4)"
 
-# Render (and other hosts) set PORT; default 8000 locally.
-CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]
+# Migrate, optionally seed/ingest (SEED_ON_START / INGEST_ON_START), then serve on
+# ${PORT:-8000} (Render sets PORT).
+CMD ["sh", "scripts/start.sh"]
