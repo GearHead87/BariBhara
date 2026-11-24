@@ -4,9 +4,15 @@ version = "0.1.0"
 description = "BariBhara API: rent, flat, tenant and maintenance management for small Dhaka landlords"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "alembic>=1.20.1",
+    "asyncpg>=0.32.0",
     "email-validator>=2.4.0",
     "fastapi>=0.165.0",
+    "pgvector>=0.5.1",
+    "pwdlib[argon2]>=0.4.2",
     "pydantic-settings>=2.16.3",
+    "pyjwt>=2.15.1",
+    "sqlalchemy[asyncio]>=2.1.9",
     "uvicorn[standard]>=0.54.0",
 ]
 
@@ -19,6 +25,9 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.isort]
+known-third-party = ["alembic"]
 
 [dependency-groups]
 dev = [
