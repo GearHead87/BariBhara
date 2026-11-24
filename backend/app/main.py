@@ -8,7 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.core.database import engine
 from app.core.handlers import register_exception_handlers
+from app.modules.auth.controllers import router as auth_router
 from app.modules.health.controllers import router as health_router
+from app.modules.users.controllers import router as users_router
 
 # Fails fast with a clear error if a required setting is missing.
 settings = get_settings()
@@ -43,7 +45,8 @@ def create_app() -> FastAPI:
 
     register_exception_handlers(app)
 
-    app.include_router(health_router, prefix=settings.API_V1_PREFIX)
+    for router in (health_router, auth_router, users_router):
+        app.include_router(router, prefix=settings.API_V1_PREFIX)
 
     return app
 
