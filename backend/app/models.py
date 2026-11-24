@@ -3,6 +3,18 @@
 from app.core.database import Base
 from app.modules.buildings.models import Building
 from app.modules.flats.models import Flat
+from app.modules.leases.models import Lease
+from app.modules.maintenance.models import MaintenanceRequest
+from app.modules.payments.models import RentPayment
 from app.modules.users.models import Role, User
 
-__all__ = ["Base", "Building", "Flat", "Role", "User"]
+__all__ = [
+    "Base",
+    "Building",
+    "Flat",
+    "Lease",
+    "MaintenanceRequest",
+    "RentPayment",
+    "Role",
+    "User",
+]

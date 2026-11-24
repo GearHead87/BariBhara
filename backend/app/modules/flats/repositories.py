@@ -50,7 +50,7 @@ class FlatRepository(BaseRepository[Flat]):
             stmt = stmt.where(Flat.monthly_rent <= filters.max_rent)
         return stmt
 
-    async def list(self, filters: FlatFilters, page: Page) -> list[Flat]:
+    async def search(self, filters: FlatFilters, page: Page) -> list[Flat]:
         stmt = (
             self._filtered(filters)
             .order_by(Building.name, Flat.flat_no)

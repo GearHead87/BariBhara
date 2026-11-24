@@ -2,18 +2,28 @@ from app.core.exceptions import ConflictError, NotFoundError, UnprocessableError
 from app.core.pagination import Page
 from app.modules.buildings.models import Building
 from app.modules.buildings.repositories import BuildingRepository
-from app.modules.flats.models import Flat
+from app.modules.flats.models import Flat, FlatStatus
 from app.modules.flats.repositories import FlatFilters, FlatRepository
 from app.modules.flats.schemas import FlatCreate, FlatUpdate
+from app.modules.leases.repositories import LeaseRepository
+from app.modules.maintenance.repositories import MaintenanceRepository
 
 
 class FlatService:
-    def __init__(self, flats: FlatRepository, buildings: BuildingRepository) -> None:
+    def __init__(
+        self,
+        flats: FlatRepository,
+        buildings: BuildingRepository,
+        leases: LeaseRepository,
+        maintenance: MaintenanceRepository,
+    ) -> None:
         self.flats = flats
         self.buildings = buildings
+        self.leases = leases
+        self.maintenance = maintenance
 
     async def list(self, filters: FlatFilters, page: Page) -> list[Flat]:
-        return await self.flats.list(filters, page)
+        return await self.flats.search(filters, page)
 
     async def get(self, flat_id: int) -> Flat:
         flat = await self.flats.get(flat_id)
@@ -40,10 +50,22 @@ class FlatService:
         if await self.flats.flat_no_taken(building.id, flat_no, exclude_id=exclude_id):
             raise ConflictError(f"Flat {flat_no} already exists in {building.name}")
 
+    async def _check_status(self, flat_id: int | None, new_status: FlatStatus) -> None:
+        """`occupied` follows the leases: it is set when a lease starts and cleared when it ends."""
+        has_lease = flat_id is not None and await self.leases.active_for_flat(flat_id) is not None
+        if new_status == FlatStatus.OCCUPIED and not has_lease:
+            raise UnprocessableError(
+                "status", "A flat becomes occupied when you add a lease for it"
+            )
+        if new_status == FlatStatus.VACANT and has_lease:
+            raise ConflictError("This flat has an active lease. End the lease first.")
+
     async def create(self, data: FlatCreate) -> Flat:
         building = await self._get_building(data.building_id)
         self._check_floor(data.floor, building)
         await self._check_unique(building, data.flat_no)
+        if data.status != FlatStatus.VACANT:
+            await self._check_status(None, data.status)
 
         flat = Flat(**data.model_dump())
         await self.flats.add(flat)
@@ -62,6 +84,8 @@ class FlatService:
             await self._check_unique(
                 building, changes.get("flat_no", flat.flat_no), exclude_id=flat.id
             )
+        if "status" in changes and changes["status"] != flat.status:
+            await self._check_status(flat.id, changes["status"])
 
         await self.flats.update(flat, changes)
         await self.flats.commit()
@@ -69,6 +93,13 @@ class FlatService:
 
     async def delete(self, flat_id: int) -> None:
         flat = await self.get(flat_id)
+        if await self.leases.active_for_flat(flat.id):
+            raise ConflictError("This flat has an active lease. End the lease first.")
+        if await self.leases.flat_has_any(flat.id) or await self.maintenance.flat_has_any(flat.id):
+            # Keep the rent and repair history intact.
+            raise ConflictError(
+                "This flat has past leases or repair records, so it cannot be deleted"
+            )
         await self.flats.delete(flat)
         await self.flats.commit()
 

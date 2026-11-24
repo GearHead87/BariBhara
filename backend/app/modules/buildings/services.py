@@ -13,7 +13,7 @@ class BuildingService:
     async def list(
         self, page: Page, q: str | None = None, area: str | None = None
     ) -> list[Building]:
-        return await self.buildings.list(page, q=q, area=area)
+        return await self.buildings.search(page, q=q, area=area)
 
     async def get(self, building_id: int) -> Building:
         building = await self.buildings.get(building_id)

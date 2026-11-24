@@ -10,4 +10,4 @@ class UserService:
     async def list_users(
         self, page: Page, role: RoleName | None = None, q: str | None = None
     ) -> list[User]:
-        return await self.users.list(page, role=role.value if role else None, q=q)
+        return await self.users.search(page, role=role.value if role else None, q=q)

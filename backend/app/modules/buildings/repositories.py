@@ -10,7 +10,7 @@ from app.modules.flats.models import Flat
 class BuildingRepository(BaseRepository[Building]):
     model = Building
 
-    async def list(
+    async def search(
         self, page: Page, q: str | None = None, area: str | None = None
     ) -> list[Building]:
         stmt = select(Building)

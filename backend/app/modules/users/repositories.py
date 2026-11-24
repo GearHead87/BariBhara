@@ -29,7 +29,7 @@ class UserRepository:
         stmt = select(User.id).where(User.email == email.lower())
         return await self.session.scalar(stmt) is not None
 
-    async def list(self, page: Page, role: str | None = None, q: str | None = None) -> list[User]:
+    async def search(self, page: Page, role: str | None = None, q: str | None = None) -> list[User]:
         stmt = select(User).join(User.role)
         if role:
             stmt = stmt.where(Role.name == role)

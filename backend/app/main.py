@@ -13,6 +13,9 @@ from app.modules.auth.controllers import router as auth_router
 from app.modules.buildings.controllers import router as buildings_router
 from app.modules.flats.controllers import router as flats_router
 from app.modules.health.controllers import router as health_router
+from app.modules.leases.controllers import router as leases_router
+from app.modules.maintenance.controllers import router as maintenance_router
+from app.modules.payments.controllers import router as payments_router
 from app.modules.users.controllers import router as users_router
 
 # Fails fast with a clear error if a required setting is missing.
@@ -48,7 +51,16 @@ def create_app() -> FastAPI:
 
     register_exception_handlers(app)
 
-    routers = (health_router, auth_router, users_router, buildings_router, flats_router)
+    routers = (
+        health_router,
+        auth_router,
+        users_router,
+        buildings_router,
+        flats_router,
+        leases_router,
+        payments_router,
+        maintenance_router,
+    )
     for router in routers:
         app.include_router(router, prefix=settings.API_V1_PREFIX)
 

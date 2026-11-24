@@ -5,7 +5,7 @@ import uuid
 import pytest
 from httpx import AsyncClient
 
-from tests.conftest import MakeUser, AuthedUser
+from tests.conftest import AuthedUser, MakeUser
 
 
 @pytest.fixture(scope="module")
@@ -72,7 +72,9 @@ async def test_duplicate_building_name_is_409(client: AsyncClient, admin: Authed
     assert res.status_code == 409
 
 
-async def test_tenant_cannot_write(client: AsyncClient, admin: AuthedUser, tenant: AuthedUser) -> None:
+async def test_tenant_cannot_write(
+    client: AsyncClient, admin: AuthedUser, tenant: AuthedUser
+) -> None:
     building = await create_building(client, admin)
     res = await client.post(
         "/buildings", json={**building, "name": "Tenant Tower"}, headers=tenant.headers
@@ -146,7 +148,7 @@ async def test_flat_filters(client: AsyncClient, admin: AuthedUser) -> None:
     bid = building["id"]
     for flat_no, beds, rent, status in [
         ("1A", 2, 15000, "vacant"),
-        ("1B", 3, 25000, "occupied"),
+        ("1B", 3, 25000, "maintenance"),
         ("2A", 3, 30000, "vacant"),
     ]:
         res = await client.post(
