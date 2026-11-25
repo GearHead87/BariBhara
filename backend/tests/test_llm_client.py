@@ -31,3 +31,16 @@ def test_providers_without_extra_content_get_a_plain_tool_call() -> None:
     message = LLMReply(content="", tool_calls=[_parse_tool_call(_call())]).as_message()
     assert "extra_content" not in message["tool_calls"][0]
     assert message["tool_calls"][0]["function"]["name"] == "get_my_rent_status"
+
+
+def test_tool_schemas_keep_fields_named_title() -> None:
+    """Stripping pydantic's `title` keyword must not delete a field called `title`."""
+    from app.modules.chat.tools import TOOLS
+
+    for tool in TOOLS.values():
+        parameters = tool.definition()["function"]["parameters"]
+        assert "title" not in parameters
+        for field in parameters.get("required", []):
+            assert field in parameters["properties"], f"{tool.name}: {field} missing"
+    maintenance = TOOLS["create_maintenance_request"].definition()["function"]["parameters"]
+    assert "title" in maintenance["properties"]

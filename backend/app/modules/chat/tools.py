@@ -55,12 +55,24 @@ class Tool:
         }
 
 
-def _clean_schema(schema: dict[str, Any]) -> dict[str, Any]:
-    """Drop pydantic's `title` keys; some providers reject unknown/unneeded keywords."""
+def _clean_schema(schema: Any) -> Any:
+    """Drop pydantic's `title` keywords; some providers reject unknown/unneeded keywords.
+
+    Keys inside `properties` are field names, not keywords: a field called `title`
+    (e.g. a maintenance request's title) must stay, or `required` points at nothing.
+    """
     if isinstance(schema, dict):
-        return {k: _clean_schema(v) for k, v in schema.items() if k != "title"}
+        return {
+            key: (
+                {name: _clean_schema(prop) for name, prop in value.items()}
+                if key == "properties" and isinstance(value, dict)
+                else _clean_schema(value)
+            )
+            for key, value in schema.items()
+            if key != "title"
+        }
     if isinstance(schema, list):
-        return [_clean_schema(v) for v in schema]
+        return [_clean_schema(item) for item in schema]
     return schema
 
 
