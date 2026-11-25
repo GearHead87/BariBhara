@@ -60,7 +60,12 @@ class EmbeddingClient:
             logger.warning("Embedding call failed: %s: %s", type(exc).__name__, exc)
             raise EmbeddingUnavailableError() from exc
 
-        data = sorted(response.data, key=lambda item: item.index)
+        # Gemini omits `index` when it is 0 (a protobuf default), so fall back to position.
+        positioned = [
+            (item.index if item.index is not None else position, item)
+            for position, item in enumerate(response.data)
+        ]
+        data = [item for _, item in sorted(positioned, key=lambda pair: pair[0])]
         if len(data) != len(inputs):
             raise EmbeddingUnavailableError()
         return [self._fit(list(item.embedding)) for item in data]

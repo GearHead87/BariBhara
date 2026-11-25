@@ -101,3 +101,19 @@ async def test_bad_key_does_not_disable_dimensions() -> None:
     with pytest.raises(EmbeddingUnavailableError):
         await client.embed_query("x")
     assert len(api.requests) == 1 and client._send_dimensions
+
+
+async def test_missing_index_zero_like_gemini() -> None:
+    """Gemini leaves out `index` when it is 0: [{embedding}, {index: 1, embedding}]."""
+
+    class GeminiLike(FakeEmbeddingsAPI):
+        async def create(self, **kwargs: Any) -> SimpleNamespace:
+            size = kwargs["dimensions"]
+            data = [
+                SimpleNamespace(index=i or None, embedding=[float(i + 1)] + [1.0] * (size - 1))
+                for i in range(len(kwargs["input"]))
+            ]
+            return SimpleNamespace(data=data)
+
+    vectors = await client_with(GeminiLike(size=3072)).embed_documents(["a", "b", "c"])
+    assert vectors[0][0] < vectors[1][0] < vectors[2][0]
