@@ -27,7 +27,7 @@ class LLMClient:
         api_key: str,
         model: str,
         *,
-        timeout: float = 30.0,
+        timeout: float = 60.0,
         temperature: float = 0.2,
     ) -> None:
         self._client = AsyncOpenAI(
@@ -47,7 +47,7 @@ class LLMClient:
                 model=self.model,
                 messages=messages,  # type: ignore[arg-type]
                 temperature=self.temperature,
-                max_tokens=1024,
+                max_tokens=4096,
                 **kwargs,  # type: ignore[arg-type]
             )
         except openai.APIError as exc:
@@ -78,4 +78,12 @@ def _parse_tool_call(call: object) -> ToolCallRequest:
         name=getattr(function, "name", "") or "",
         arguments=arguments,
         raw_arguments=raw,
+        extra_content=_extra_content(call),
     )
+
+
+def _extra_content(call: object) -> dict | None:
+    extra = getattr(call, "extra_content", None)
+    if extra is None:
+        extra = (getattr(call, "model_extra", None) or {}).get("extra_content")
+    return extra if isinstance(extra, dict) else None
