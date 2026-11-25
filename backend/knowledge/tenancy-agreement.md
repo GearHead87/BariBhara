@@ -1,6 +1,6 @@
 # Tenancy Agreement — Standard Terms
 
-This is a plain-language summary of the standard tenancy agreement (ভাড়ার চুক্তি) that every tenant signs with the owner, Abdur Rahman. The signed paper agreement is the final word if anything here differs.
+This is a plain-language summary of the standard tenancy agreement (ভাড়ার চুক্তি) that every tenant signs with the owner, Hazrat Ali. The signed paper agreement is the final word if anything here differs.
 
 ## Rent and service charge
 

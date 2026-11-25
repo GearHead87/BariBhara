@@ -142,7 +142,7 @@ uv run pytest            # tests use a separate, freshly migrated baribhara_test
 
 | Role | Email | Password |
 |---|---|---|
-| Owner | rahman@baribhara.app | admin123 |
+| Owner | hazrat@baribhara.app | admin123 |
 | Caretaker | karim@baribhara.app | staff123 |
 | Tenant (owes this month's rent) | tanvir.hasan@gmail.com | tenant123 |
 | Other tenants | nusrat.jahan@gmail.com, farhana.akter@yahoo.com, mahmud.islam@gmail.com, … | tenant123 |
@@ -156,7 +156,7 @@ API=http://localhost:8000/api/v1
 
 # Login (wrong email and wrong password give the same 401 message)
 TOKEN=$(curl -s -X POST $API/auth/login -H 'Content-Type: application/json' \
-  -d '{"email":"rahman@baribhara.app","password":"admin123"}' | jq -r .access_token)
+  -d '{"email":"hazrat@baribhara.app","password":"admin123"}' | jq -r .access_token)
 
 # CRUD: vacant 3-bedroom flats in Uttara under ৳30,000
 curl -s "$API/flats?status=vacant&area=Uttara&bedrooms=3&max_rent=30000" -H "Authorization: Bearer $TOKEN"

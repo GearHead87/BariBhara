@@ -14,7 +14,7 @@ If there is a fire, gas leak with a strong smell, serious injury or a crime in p
 ## Building contacts
 
 - **Caretaker:** Md. Karim Uddin, 01819-205577. Available 8 AM to 10 PM; for an emergency, call at any time.
-- **Owner:** Abdur Rahman, 01711-482913. For urgent problems the caretaker cannot solve.
+- **Owner:** Hazrat Ali, 01711-482913. For urgent problems the caretaker cannot solve.
 - **Night guard:** at the main gate from 10 PM to 6 AM.
 - Non-urgent repairs: create a repair request in the BariBhara app so it is tracked.
 

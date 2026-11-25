@@ -3,7 +3,7 @@
 Idempotent: every row is looked up by its natural key first, so running it twice creates
 nothing new. Demo logins match the frontend's login page:
 
-    owner      rahman@baribhara.app    / admin123
+    owner      hazrat@baribhara.app    / admin123
     caretaker  karim@baribhara.app     / staff123
     tenant     tanvir.hasan@gmail.com  / tenant123   (and the other tenants below)
 
@@ -37,9 +37,15 @@ from app.modules.users.models import Role, RoleName, User
 
 # ---- data ---------------------------------------------------------------------------------
 
+OWNER_EMAIL = "hazrat@baribhara.app"
+# Accounts whose email or name changed after a database was already seeded:
+# old email -> (new email, new full name). The seed renames them in place, so the
+# account keeps its id, password and everything linked to it.
+RENAMED_USERS = {"rahman@baribhara.app": (OWNER_EMAIL, "Hazrat Ali")}
+
 # email, full name, phone, role, password
 USERS = [
-    ("rahman@baribhara.app", "Abdur Rahman", "01711-482913", RoleName.ADMIN, "admin123"),
+    (OWNER_EMAIL, "Hazrat Ali", "01711-482913", RoleName.ADMIN, "admin123"),
     ("karim@baribhara.app", "Md. Karim Uddin", "01819-205577", RoleName.STAFF, "staff123"),
     ("tanvir.hasan@gmail.com", "Tanvir Hasan", "01712-334455", RoleName.TENANT, "tenant123"),
     ("nusrat.jahan@gmail.com", "Nusrat Jahan", "01915-667788", RoleName.TENANT, "tenant123"),
@@ -199,7 +205,18 @@ class Seeder:
         await self.session.flush()
         return roles
 
+    async def rename_users(self) -> None:
+        for old_email, (new_email, full_name) in RENAMED_USERS.items():
+            user = await self.session.scalar(select(User).where(User.email == old_email))
+            taken = await self.session.scalar(select(User.id).where(User.email == new_email))
+            if user is not None and taken is None:
+                user.email = new_email
+                user.full_name = full_name
+                self.created["renamed users"] += 1
+        await self.session.flush()
+
     async def users(self, roles: dict[str, Role]) -> dict[str, User]:
+        await self.rename_users()
         users = {}
         for email, full_name, phone, role, password in USERS:
             user = await self.session.scalar(select(User).where(User.email == email))
@@ -360,7 +377,7 @@ class Seeder:
     async def run(self) -> None:
         roles = await self.roles()
         users = await self.users(roles)
-        owner = users["rahman@baribhara.app"]
+        owner = users[OWNER_EMAIL]
         caretaker = users["karim@baribhara.app"]
         buildings = await self.buildings(owner)
         flats = await self.flats(buildings)
@@ -383,7 +400,7 @@ async def main() -> None:
     else:
         print("Seed complete. Nothing new to create (database already seeded).")
     print("\nDemo logins:")
-    print("  owner      rahman@baribhara.app   / admin123")
+    print("  owner      hazrat@baribhara.app   / admin123")
     print("  caretaker  karim@baribhara.app    / staff123")
     print("  tenant     tanvir.hasan@gmail.com / tenant123")
 

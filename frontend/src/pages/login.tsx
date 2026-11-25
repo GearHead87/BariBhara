@@ -8,7 +8,7 @@ import { USE_MOCK } from '@/lib/api/client'
 import { homePathFor } from '@/lib/roles'
 
 const DEMO = [
-  { label: 'Owner', email: 'rahman@baribhara.app', password: 'admin123' },
+  { label: 'Owner', email: 'hazrat@baribhara.app', password: 'admin123' },
   { label: 'Caretaker', email: 'karim@baribhara.app', password: 'staff123' },
   { label: 'Tenant', email: 'tanvir.hasan@gmail.com', password: 'tenant123' },
 ]

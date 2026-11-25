@@ -18,7 +18,7 @@ function monthOffset(offset: number) {
 }
 
 export const users: MockUser[] = [
-  { id: 1, full_name: 'Abdur Rahman', email: 'rahman@baribhara.app', phone: '01711-482913', role: 'admin', password: 'admin123', is_active: true, created_at: iso(400) },
+  { id: 1, full_name: 'Hazrat Ali', email: 'hazrat@baribhara.app', phone: '01711-482913', role: 'admin', password: 'admin123', is_active: true, created_at: iso(400) },
   { id: 2, full_name: 'Md. Karim Uddin', email: 'karim@baribhara.app', phone: '01819-205577', role: 'staff', password: 'staff123', is_active: true, created_at: iso(380) },
   { id: 3, full_name: 'Tanvir Hasan', email: 'tanvir.hasan@gmail.com', phone: '01712-334455', role: 'tenant', password: 'tenant123', is_active: true, created_at: iso(300) },
   { id: 4, full_name: 'Nusrat Jahan', email: 'nusrat.jahan@gmail.com', phone: '01915-667788', role: 'tenant', password: 'tenant123', is_active: true, created_at: iso(290) },

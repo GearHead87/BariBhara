@@ -29,7 +29,7 @@ Set `VITE_API_MOCK=true` in `.env`. Every request is then served by an in-memory
 
 | Demo login | Email | Password |
 |---|---|---|
-| Owner | rahman@baribhara.app | admin123 |
+| Owner | hazrat@baribhara.app | admin123 |
 | Caretaker | karim@baribhara.app | staff123 |
 | Tenant | tanvir.hasan@gmail.com | tenant123 |
 
